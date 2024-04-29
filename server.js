@@ -1,28 +1,32 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const ShortUrl = require("./models/shortUrl");
+const path = require("path");
 const app = express();
+const cors = require("cors");
+
+app.use(cors());
+app.use(express.json()); // Añade esto para parsear JSON en el cuerpo de las solicitudes
+app.use(express.urlencoded({ extended: true }));
 
 mongoose
   .connect("mongodb://localhost:27017/urlShortener", {})
   .then(() => console.log("MongoDB connected..."))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-app.set("view engine", "ejs");
-app.use(express.urlencoded({ extended: false }));
-
 app.get("/", async (req, res) => {
   const shortUrls = await ShortUrl.find();
   console.log(shortUrls);
-  res.render("index", { shortUrls: shortUrls });
+  res.json(shortUrls);
 });
 
 app.post("/shortUrls", async (req, res) => {
   const { fullUrl, customShortId } = req.body;
+  console.log("Creating short URL:", { fullUrl, customShortId });
 
-  // Comprobar si el identificador personalizado ya está en uso
   const existingUrl = await ShortUrl.findOne({ short: customShortId });
   if (existingUrl) {
+    console.log("Short URL already exists:", existingUrl);
     return res.status(409).send("This name is already in use");
   }
 
@@ -31,20 +35,31 @@ app.post("/shortUrls", async (req, res) => {
   }
 
   try {
-    await ShortUrl.create({ full: fullUrl, short: customShortId });
-    res.redirect("/");
+    const newUrl = await ShortUrl.create({
+      full: fullUrl,
+      short: customShortId,
+    });
+    console.log("New short URL created:", newUrl);
+    res.json(newUrl); // Devuelve el objeto URL creado
   } catch (error) {
-    return res
+    res
       .status(500)
-      .send("Error creating the short URL " + error.message);
+      .json({ error: "Error creating the short URL: " + error.message });
   }
 });
 
 app.get("/:shortUrl", async (req, res) => {
   const shortUrl = await ShortUrl.findOne({ short: req.params.shortUrl });
-  if (shortUrl == null) return res.sendStatus(404);
-
-  res.redirect(shortUrl.full);
+  if (shortUrl) {
+    res.redirect(shortUrl.full);
+  } else {
+    res.sendStatus(404);
+  }
 });
 
-app.listen(process.env.PORT || 5000);
+//middleware
+app.use(express.static("public"));
+
+app.listen(process.env.PORT || 5000, () => {
+  console.log(`Server running on port ${process.env.PORT || 5000}`);
+});
