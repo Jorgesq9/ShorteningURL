@@ -5,12 +5,19 @@ const path = require("path");
 const app = express();
 const cors = require("cors");
 
-app.use(cors());
-app.use(express.json()); // Añade esto para parsear JSON en el cuerpo de las solicitudes
+app.use(
+  cors({
+    origin: "https://jorge-link-shortening.netlify.app",
+  })
+);
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const dbURI =
+  process.env.MONGODB_URI ||
+  "mongodb+srv://jorgeesquivait:Kiu0Xx66NaAqlFNZ@link-shortener.phpmwmj.mongodb.net/";
 mongoose
-  .connect("mongodb://localhost:27017/urlShortener", {})
+  .connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("MongoDB connected..."))
   .catch((err) => console.error("MongoDB connection error:", err));
 
