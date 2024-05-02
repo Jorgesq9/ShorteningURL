@@ -51,6 +51,22 @@ app.post("/shortUrls", async (req, res) => {
   }
 });
 
+app.get("/:shortUrl", async (req, res) => {
+  try {
+    const shortUrl = await ShortUrl.findOne({ short: req.params.shortUrl });
+    if (shortUrl) {
+      shortUrl.clicks++;
+      await shortUrl.save();
+      res.redirect(shortUrl.full);
+    } else {
+      res.sendStatus(404);
+    }
+  } catch (error) {
+    console.error("Error when redirecting:", error);
+    res.sendStatus(500);
+  }
+});
+
 app.delete("/shortUrls/:id", async (req, res) => {
   try {
     const deletedUrl = await ShortUrl.findByIdAndDelete(req.params.id);
@@ -66,22 +82,6 @@ app.delete("/shortUrls/:id", async (req, res) => {
     res
       .status(500)
       .send({ error: "Error deleting short URL: " + error.message });
-  }
-});
-
-app.get("/:shortUrl", async (req, res) => {
-  try {
-    const shortUrl = await ShortUrl.findOne({ short: req.params.shortUrl });
-    if (shortUrl) {
-      shortUrl.clicks++; // Incrementa los clics
-      await shortUrl.save(); // Guarda los cambios
-      res.redirect(shortUrl.full); // Redirecciona al URL completo
-    } else {
-      res.sendStatus(404);
-    }
-  } catch (error) {
-    console.error("Error when redirecting:", error);
-    res.sendStatus(500);
   }
 });
 
