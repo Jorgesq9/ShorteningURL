@@ -9,7 +9,7 @@ const cors = require("cors");
 const MONGODB_URI = "mongodb://localhost:27017/urlShortener";
 
 app.use(cors());
-app.use(express.json()); // Añade esto para parsear JSON en el cuerpo de las solicitudes
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 mongoose
@@ -70,11 +70,18 @@ app.delete("/shortUrls/:id", async (req, res) => {
 });
 
 app.get("/:shortUrl", async (req, res) => {
-  const shortUrl = await ShortUrl.findOne({ short: req.params.shortUrl });
-  if (shortUrl) {
-    res.redirect(shortUrl.full);
-  } else {
-    res.sendStatus(404);
+  try {
+    const shortUrl = await ShortUrl.findOne({ short: req.params.shortUrl });
+    if (shortUrl) {
+      shortUrl.clicks++; // Incrementa los clics
+      await shortUrl.save(); // Guarda los cambios
+      res.redirect(shortUrl.full); // Redirecciona al URL completo
+    } else {
+      res.sendStatus(404);
+    }
+  } catch (error) {
+    console.error("Error when redirecting:", error);
+    res.sendStatus(500);
   }
 });
 
