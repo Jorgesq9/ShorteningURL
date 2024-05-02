@@ -5,6 +5,7 @@ const ShortUrl = require("./models/shortUrl");
 const path = require("path");
 const app = express();
 const cors = require("cors");
+
 const MONGODB_URI = "mongodb://localhost:27017/urlShortener";
 
 app.use(cors());
@@ -47,6 +48,24 @@ app.post("/shortUrls", async (req, res) => {
     res
       .status(500)
       .json({ error: "Error creating the short URL: " + error.message });
+  }
+});
+
+app.delete("/shortUrls/:id", async (req, res) => {
+  try {
+    const deletedUrl = await ShortUrl.findByIdAndDelete(req.params.id);
+    if (!deletedUrl) {
+      return res
+        .status(404)
+        .send({ message: "No short URL found with this ID" });
+    }
+    res
+      .status(200)
+      .send({ message: "Short URL deleted successfully", deletedUrl });
+  } catch (error) {
+    res
+      .status(500)
+      .send({ error: "Error deleting short URL: " + error.message });
   }
 });
 
