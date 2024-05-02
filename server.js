@@ -1,23 +1,18 @@
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const ShortUrl = require("./models/shortUrl");
 const path = require("path");
 const app = express();
 const cors = require("cors");
+const MONGODB_URI = "mongodb://localhost:27017/urlShortener";
 
-app.use(
-  cors({
-    origin: "https://jorge-link-shortening.netlify.app",
-  })
-);
-app.use(express.json());
+app.use(cors());
+app.use(express.json()); // Añade esto para parsear JSON en el cuerpo de las solicitudes
 app.use(express.urlencoded({ extended: true }));
 
-const dbURI =
-  process.env.MONGODB_URI ||
-  "mongodb+srv://jorgeesquivait:Kiu0Xx66NaAqlFNZ@link-shortener.phpmwmj.mongodb.net/";
 mongoose
-  .connect(dbURI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(process.env.MONGODB_URI)
   .then(() => console.log("MongoDB connected..."))
   .catch((err) => console.error("MongoDB connection error:", err));
 
