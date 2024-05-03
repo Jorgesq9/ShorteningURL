@@ -1,9 +1,10 @@
 require("dotenv").config();
 const express = require("express");
+const app = express();
+app.use(express.static("public"));
 const mongoose = require("mongoose");
 const ShortUrl = require("./models/shortUrl");
 const path = require("path");
-const app = express();
 const cors = require("cors");
 
 const MONGODB_URI = "mongodb://localhost:27017/urlShortener";
